@@ -2,7 +2,7 @@ pipeline {
     agent { label 'docker' }
 
     triggers {
-        pollSCM('H/2 * * * *')
+        pollSCM('H/2 * * * *')  // Poll Git every 2 minutes
     }
 
     environment {
@@ -15,25 +15,36 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
+                echo "Checking out source code..."
                 checkout scm
+            }
+        }
+
+        stage('Debug Workspace') {
+            steps {
+                echo "Listing files in workspace..."
+                sh "pwd"
+                sh "ls -la"
             }
         }
 
         stage('Docker Build') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} . "
+                echo "Building Docker image..."
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
             }
         }
 
         stage('Docker Push') {
             steps {
+                echo "Logging into Docker Hub and pushing image..."
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-creds-id',
-                    usernameVariable: 'USER',
-                    passwordVariable: 'PASS'
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh """
-                        echo \$PASS | docker login -u \$USER --password-stdin
+                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
                         docker push ${IMAGE_NAME}:${IMAGE_TAG}
                     """
                 }
@@ -42,12 +53,14 @@ pipeline {
 
         stage('Kube Testing') {
             steps {
+                echo "Checking Kubernetes pods..."
                 sh "kubectl get pods"
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
+                echo "Deploying to Kubernetes..."
                 sh "kubectl apply -f ."
                 sh "kubectl get pods"
                 sh "kubectl get deployment"
@@ -55,8 +68,9 @@ pipeline {
             }
         }
 
-        stage('Testing Deployment') {
+        stage('Test Deployment') {
             steps {
+                echo "Testing deployment..."
                 sh "curl 192.168.49.2:30110"
             }
         }
