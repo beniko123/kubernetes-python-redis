@@ -5,6 +5,9 @@ pipeline {
 }
 environment {
         APP_ENV   = 'uat'
+          IMAGE_NAME = 'beniko123/py-feb27'
+         IMAGE_TAG  = 'v2'
+    }
     }
   stages {
     stage('Checkout Code') {
@@ -48,5 +51,4 @@ stage('Testing deployment') {
       }
 }
   }
-}
 }
