@@ -1,54 +1,64 @@
 pipeline {
-  agent { label 'docker' }
-  triggers {
-    pollSCM('H/2 * * * *')
-}
-environment {
-        APP_ENV   = 'uat'
-          IMAGE_NAME = 'beniko123/py-feb27'
-         IMAGE_TAG  = 'v2'
-    }
-    }
-  stages {
-    stage('Checkout Code') {
-      steps {
-        checkout scm
-      }
-    }
-  stage('Docker Build') {
-    steps {
-        sh 'docker build -t beniko123/beniko123/py-feb27:v2 .'
-    }
-  }
-  stage('Docker Push') {
-    steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds-id',
-                        usernameVariable: 'USER',
-                        passwordVariable: 'PASS')]) {
-            sh '''
-            echo $PASS | docker login -u $USER --password-stdin
-            docker push beniko123/py-feb27:v2
-            '''
-        }
+    agent { label 'docker' }
+
+    triggers {
+        pollSCM('H/2 * * * *')
     }
 
-    stage('Kube testing') {
-      steps {
-        sh "kubectl get pods "
-      }
-}
-  stage('deploy kube') {
-      steps {
-	      sh "kubectl apply -f ."
-        sh "kubectl get pods"
-        sh "kubectl get deployment"
-        sh "kubectl get svc"
-      }
-}
-stage('Testing deployment') {
-      steps {
-	    sh "curl 192.168.49.2:30110"
-      }
-}
-  }
+    environment {
+        APP_ENV    = 'uat'
+        IMAGE_NAME = 'beniko123/py-feb27'
+        IMAGE_TAG  = 'v2'
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds-id',
+                    usernameVariable: 'USER',
+                    passwordVariable: 'PASS'
+                )]) {
+                    sh """
+                        echo \$PASS | docker login -u \$USER --password-stdin
+                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                    """
+                }
+            }
+        }
+
+        stage('Kube Testing') {
+            steps {
+                sh "kubectl get pods"
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh "kubectl apply -f ."
+                sh "kubectl get pods"
+                sh "kubectl get deployment"
+                sh "kubectl get svc"
+            }
+        }
+
+        stage('Testing Deployment') {
+            steps {
+                sh "curl 192.168.49.2:30110"
+            }
+        }
+    }
 }
