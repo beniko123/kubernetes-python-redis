@@ -12,12 +12,29 @@ environment {
         checkout scm
       }
     }
+  stage('Docker Build') {
+    steps {
+        sh 'docker build -t beniko123/beniko123/py-feb27:v2 .'
+    }
+  }
+  stage('Docker Push') {
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds-id',
+                        usernameVariable: 'USER',
+                        passwordVariable: 'PASS')]) {
+            sh '''
+            echo $PASS | docker login -u $USER --password-stdin
+            docker push beniko123/py-feb27:v2
+            '''
+        }
+    }
+
     stage('Kube testing') {
       steps {
         sh "kubectl get pods "
       }
 }
-stage('deploy kube') {
+  stage('deploy kube') {
       steps {
 	      sh "kubectl apply -f ."
         sh "kubectl get pods"
@@ -31,4 +48,5 @@ stage('Testing deployment') {
       }
 }
   }
+}
 }
