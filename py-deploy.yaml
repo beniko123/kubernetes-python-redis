@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: python-container
-          image: beniko123/py-feb26:v1
+          image: beniko123/py-feb26:v2
           ports:
             - containerPort: 8000
           envFrom:
