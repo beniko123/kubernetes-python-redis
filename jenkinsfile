@@ -2,7 +2,7 @@ pipeline {
     agent { label 'docker' }
 
     triggers {
-        pollSCM('H/2 * * * *')  // Poll Git every 2 minutes
+        pollSCM('H/2 * * * *')   // Poll Git every 2 minutes
     }
 
     environment {
@@ -23,8 +23,23 @@ pipeline {
         stage('Debug Workspace') {
             steps {
                 echo "Listing files in workspace..."
-                sh "pwd"
-                sh "ls -la"
+                sh 'pwd'
+                sh 'ls -la'
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                echo 'Logging into Docker Hub...'
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds-id',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    '''
+                }
             }
         }
 
@@ -37,41 +52,32 @@ pipeline {
 
         stage('Docker Push') {
             steps {
-                echo "Logging into Docker Hub and pushing image..."
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds-id',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    sh """
-                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                    """
-                }
+                echo "Pushing Docker image..."
+                sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
             }
         }
 
         stage('Kube Testing') {
             steps {
                 echo "Checking Kubernetes pods..."
-                sh "kubectl get pods"
+                sh 'kubectl get pods'
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
                 echo "Deploying to Kubernetes..."
-                sh "kubectl apply -f ."
-                sh "kubectl get pods"
-                sh "kubectl get deployment"
-                sh "kubectl get svc"
+                sh 'kubectl apply -f .'
+                sh 'kubectl get pods'
+                sh 'kubectl get deployment'
+                sh 'kubectl get svc'
             }
         }
 
         stage('Test Deployment') {
             steps {
                 echo "Testing deployment..."
-                sh "curl 192.168.49.2:30110"
+                sh 'curl 192.168.49.2:30110'
             }
         }
     }
