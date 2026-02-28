@@ -8,7 +8,7 @@ pipeline {
     environment {
         APP_ENV    = 'uat'
         IMAGE_NAME = 'beniko123/py-feb27'
-        IMAGE_TAG  = 'v2'
+        IMAGE_TAG  = $BUILD_NUMBER 
     }
 
     stages {
@@ -63,12 +63,21 @@ pipeline {
                 sh 'kubectl get pods'
             }
         }
+        stage('Deploy - Template and Apply') {
+        steps {
+            sh '''
+            export IMAGE_TAG=$BUILD_NUMBER
+            envsubst < py-deploy.yaml | kubectl apply -f -
+            kubectl rollout status deployment/py-deploy
+            '''
+        }
+    }
 
         stage('Deploy to Kubernetes') {
             steps {
                 echo "Deploying to Kubernetes..."
-                sh 'kubectl apply -f .'
-                sh 'kubectl get pods'
+           
+                 sh 'kubectl get pods'
                 sh 'kubectl get deployment'
                 sh 'kubectl get svc'
             }
