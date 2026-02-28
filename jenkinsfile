@@ -8,7 +8,7 @@ pipeline {
     environment {
         APP_ENV    = 'uat'
         IMAGE_NAME = 'beniko123/py-feb27'
-        IMAGE_TAG  = $BUILD_NUMBER 
+        
     }
 
     stages {
@@ -46,14 +46,14 @@ pipeline {
         stage('Docker Build') {
             steps {
                 echo "Building Docker image..."
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} python-sample-code"
+                sh "docker build -t ${IMAGE_NAME}:$BUILD_NUMBER python-sample-code"
             }
         }
 
         stage('Docker Push') {
             steps {
                 echo "Pushing Docker image..."
-                sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                sh "docker push ${IMAGE_NAME}:$BUILD_NUMBER"
             }
         }
 
