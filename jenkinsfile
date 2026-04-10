@@ -70,11 +70,17 @@ pipeline {
 
 
         steps {
-            sh '''
-            export IMAGE_TAG=$BUILD_NUMBER
-            kubectl apply -f k8s/
-            kubectl rollout status deployment/py-deploy
-            '''
+sh '''
+        export IMAGE_TAG=${BUILD_NUMBER}
+
+        envsubst < configmap.yaml | kubectl apply -f -
+        kubectl apply -f redis-deploy.yaml
+        kubectl apply -f redis-service.yaml
+        envsubst < py-deploy.yaml | kubectl apply -f -
+        kubectl apply -f py-service.yaml
+
+        kubectl rollout status deployment/py-deploy
+        '''
         }
     }
 
