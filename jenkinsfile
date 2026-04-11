@@ -99,7 +99,7 @@ sh '''
         stage('Test Deployment') {
             steps {
                 echo "Testing deployment..."
-                sh 'curl 98.91.222.69:30110'
+                sh 'curl 54.196.200.14:30110'
             }
         }
     }
