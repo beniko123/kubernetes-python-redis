@@ -70,9 +70,9 @@ pipeline {
 
 
         steps {
-            sh '''
+sh '''
         export IMAGE_TAG=${BUILD_NUMBER}
-        kubectl apply -f .
+
         envsubst < configmap.yaml | kubectl apply -f -
         kubectl apply -f redis-deploy.yaml
         kubectl apply -f redis-service.yaml
