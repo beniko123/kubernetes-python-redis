@@ -70,7 +70,7 @@ pipeline {
 
 
         steps {
-sh '''
+                sh '''
         export IMAGE_TAG=${BUILD_NUMBER}
 
         envsubst < configmap.yaml | kubectl apply -f -
@@ -90,7 +90,7 @@ sh '''
             steps {
                 echo "Deploying to Kubernetes..."
            
-                 sh 'kubectl get pods'
+                sh 'kubectl get pods'
                 sh 'kubectl get deployment'
                 sh 'kubectl get svc'
             }
@@ -99,7 +99,7 @@ sh '''
         stage('Test Deployment') {
             steps {
                 echo "Testing deployment..."
-                sh 'curl 18.215.254.94:30110'
+                sh 'curl 13.217.142.75:30110'
             }
         }
     }
