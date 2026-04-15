@@ -99,7 +99,7 @@ pipeline {
         stage('Test Deployment') {
             steps {
                 echo "Testing deployment..."
-                sh 'curl 13.217.142.75:30110'
+                sh 'curl 54.226.125.66:30110'
             }
         }
     }
