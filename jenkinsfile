@@ -1,9 +1,9 @@
 pipeline {
     agent { label 'docker' }
 
-    triggers {
-        pollSCM('H/2 * * * *')   // Poll Git every 2 minutes
-    }
+    // triggers {
+    //     pollSCM('H/2 * * * *')   // Poll Git every 2 minutes
+    // }
 
     environment {
         APP_ENV    = 'uat'
