@@ -8,9 +8,12 @@ pipeline {
     environment {
         APP_ENV    = 'uat'
         IMAGE_NAME = 'beniko123/py-feb27'
-        
+        SONAR_TOKEN = credentials('sonar-token')
     }
-
+    tools {
+        sonarScanner 'sonar-scanner'
+    }
+ 
     stages {
 
         stage('Checkout Code') {
@@ -25,6 +28,28 @@ pipeline {
                 echo "Listing files in workspace..."
                 sh 'pwd'
                 sh 'ls -la'
+            }
+        }
+         stage('SonarCloud Analysis') {
+            steps {
+                withSonarQubeEnv('SonarCloud') {
+                    sh '''
+                    sonar-scanner \
+                      -Dsonar.projectKey=beniko123_kubernetes-python-redis \
+                      -Dsonar.organization=beniko123 \
+                      -Dsonar.sources=. \
+                      -Dsonar.host.url=https://sonarcloud.io \
+                      -Dsonar.login=$SONAR_TOKEN
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
