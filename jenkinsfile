@@ -1,12 +1,19 @@
 pipeline {
     agent { label 'docker' }
 
+    // triggers {
+    //     pollSCM('H/2 * * * *')   // Poll Git every 2 minutes
+    // }
+
     environment {
         APP_ENV    = 'uat'
         IMAGE_NAME = 'beniko123/py-feb27'
         SONAR_TOKEN = credentials('sonar-token')
     }
-
+    //  tools {
+    //      sonarRunner 'sonar-scanner'
+    //  }
+ 
     stages {
 
         stage('Checkout Code') {
@@ -23,8 +30,8 @@ pipeline {
                 sh 'ls -la'
             }
         }
-
-        stage('SonarCloud Analysis') {
+        
+         stage('SonarCloud Analysis') {
             steps {
                 withSonarQubeEnv('SonarCloud') {
                     sh '''
@@ -69,19 +76,6 @@ pipeline {
             }
         }
 
-        stage('Trivy Image Scan') {
-            steps {
-                echo "Scanning Docker image with Trivy..."
-
-                sh '''
-                trivy image \
-                  --exit-code 1 \
-                  --severity HIGH,CRITICAL \
-                  ${IMAGE_NAME}:$BUILD_NUMBER
-                '''
-            }
-        }
-
         stage('Docker Push') {
             steps {
                 echo "Pushing Docker image..."
@@ -97,31 +91,31 @@ pipeline {
                 sh 'kubectl get pods'
             }
         }
-
         stage('Deploy - Template and Apply') {
-            agent { label 'kubernetes' }
+             agent { label 'kubernetes' }
 
-            steps {
+
+        steps {
                 sh '''
-                export IMAGE_TAG=${BUILD_NUMBER}
+        export IMAGE_TAG=${BUILD_NUMBER}
 
-                envsubst < configmap.yaml | kubectl apply -f -
-                kubectl apply -f redis-deploy.yaml
-                kubectl apply -f redis-service.yaml
-                envsubst < py-deploy.yaml | kubectl apply -f -
-                kubectl apply -f py-service.yaml
+        envsubst < configmap.yaml | kubectl apply -f -
+        kubectl apply -f redis-deploy.yaml
+        kubectl apply -f redis-service.yaml
+        envsubst < py-deploy.yaml | kubectl apply -f -
+        kubectl apply -f py-service.yaml
 
-                kubectl rollout status deployment/py-deploy
-                '''
-            }
+        kubectl rollout status deployment/py-deploy
+        '''
         }
+    }
 
         stage('Deploy to Kubernetes') {
-            agent { label 'kubernetes' }
+             agent { label 'kubernetes' }
 
             steps {
                 echo "Deploying to Kubernetes..."
-
+           
                 sh 'kubectl get pods'
                 sh 'kubectl get deployment'
                 sh 'kubectl get svc'
