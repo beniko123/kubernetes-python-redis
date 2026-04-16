@@ -10,9 +10,9 @@ pipeline {
         IMAGE_NAME = 'beniko123/py-feb27'
         SONAR_TOKEN = credentials('sonar-token')
     }
-     tools {
-         sonarRunner 'sonar-scanner'
-     }
+    //  tools {
+    //      sonarRunner 'sonar-scanner'
+    //  }
  
     stages {
 
