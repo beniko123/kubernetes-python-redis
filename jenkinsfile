@@ -75,24 +75,18 @@ pipeline {
                 sh "docker build -t ${IMAGE_NAME}:$BUILD_NUMBER python-sample-code"
             }
         }
-        stage('Trivy Image Scan') {
-            steps {
-        echo "Scanning Docker image with Trivy..."
+   stage('Trivy Image Scan') {
+    agent { label 'sonar' }
 
+    steps {
         sh '''
-        # Download DB first (faster pipelines)
-        trivy image --download-db-only
-
-        # Scan image and fail pipeline on HIGH or CRITICAL vulnerabilities
         trivy image \
           --exit-code 1 \
           --severity HIGH,CRITICAL \
-          --no-progress \
           ${IMAGE_NAME}:$BUILD_NUMBER
         '''
-         }
     }
-
+}
         stage('Docker Push') {
             steps {
                 echo "Pushing Docker image..."
