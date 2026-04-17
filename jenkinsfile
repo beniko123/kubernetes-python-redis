@@ -165,7 +165,7 @@ pipeline {
         stage('Test Deployment') {
             steps {
                 echo "Testing deployment..."
-                sh 'curl 18.232.103.243:30110'
+                sh 'curl 54.210.231.33:30110'
             }
         }
     }
